@@ -114,35 +114,12 @@ int main(void)
   LCD_Init(&rccClocks, LCD_COLOR_BACKGROUND);
 
   // Calculate ST7920 screen dimensions
-  st7920PixelSize = min(LCD_WIDTH / ST7920_GXROWS, (LCD_HEIGHT - 8) / ST7920_GYROWS);
+  st7920PixelSize = min(LCD_WIDTH / ST7920_GXROWS, LCD_HEIGHT / ST7920_GYROWS);
   st7920StartX = (LCD_WIDTH - st7920PixelSize * ST7920_GXROWS) / 2;
-  st7920StartY = 8 + (LCD_HEIGHT - 8 - st7920PixelSize * ST7920_GYROWS) / 2;
-
-  // Show title
-  const uint8_t pTitle[] = {0x7F, 0x02, 0x04, 0x08, 0x7F, 0x38, 0x44, 0x44, 0x44, 0x38, 0x01, 0x01, 0x7F, 0x01, 0x01, 0x38, 0x44, 0x44, 0x44, 0x38, 0x3C, 0x40, 0x20, 0x7C, 0x00, 0x38, 0x44, 0x44, 0x44, 0x28, 0x7F, 0x04, 0x04, 0x78, 0x00, 0x7F, 0x09, 0x09, 0x09, 0x01, 0x3C, 0x60, 0x30, 0x60, 0x3C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1F, 0x20, 0x40, 0x20, 0x1F, 0x00, 0x42, 0x7F, 0x40, 0x00, 0x00, 0x60, 0x60, 0x00, 0x00, 0x22, 0x49, 0x49, 0x49, 0x36, 0x00, 0x60, 0x60, 0x00, 0x00, 0x00, 0x42, 0x7F, 0x40, 0x00};
-  for (uint16_t i = 0, x = (LCD_WIDTH - sizeof(pTitle) / 5 * 6) / 2; i < sizeof(pTitle); ++i, ++x) {
-    for (uint8_t y = 0; y < 8; ++y) {
-      if ((pTitle[i] & (1 << y)) > 0) {
-        FILLRECT(x, y, 1, 1, LCD_COLOR_FOREGROUND);
-      }
-    }
-    if ((i % 5) == 4) {
-      ++x;
-    }
-  }
+  st7920StartY = 8 + (LCD_HEIGHT - st7920PixelSize * ST7920_GYROWS) / 2;
 
   // Create emulator handle
   St7920Emulator st7920Emulator(clearDisplay, drawByte);
-
-  // Show startup message
-  const uint8_t pStartupMessage[] = {0xF8, 0x30, 0x00, 0x00, 0x60, 0x00, 0xC0, 0xF8, 0x80, 0x00, 0xFA, 0x50, 0x30, 0x50, 0x40, 0x30, 0x70, 0x30, 0x90, 0x30, 0x20, 0x30, 0x00, 0x40, 0x50, 0x60, 0xD0, 0x70, 0x50, 0x60, 0xC0, 0x60, 0x10, 0x70, 0x40, 0x60, 0xF0, 0x70, 0x20, 0xF8, 0x90, 0x00, 0xFA, 0x70, 0x20, 0x60, 0x50, 0x60, 0x10, 0x60, 0x40, 0x70, 0x90};
-  for (uint8_t i = 0; i < sizeof(pStartupMessage); ++i) {
-    st7920Emulator.parseSerialData(pStartupMessage[i]);
-  }
-  st7920Emulator.reset(false);
-
-  // Add first part of header line
-  FILLRECT(0, 7, LCD_WIDTH / 2 - sizeof(pTitle) / 5 * 3 - 1, 1, LCD_COLOR_FOREGROUND);
 
   // Init slave SPI
   ui32SpiActivated = 0;
@@ -172,12 +149,9 @@ int main(void)
   uint32_t ui32LastActive = 0;
 #endif
 
-  // Add second part of header line
-  FILLRECT(LCD_WIDTH / 2 + sizeof(pTitle) / 5 * 3, 7, LCD_WIDTH / 2 - sizeof(pTitle) / 5 * 3, 1, LCD_COLOR_FOREGROUND);
-
   // Variables for SPI data received indicator
 #if defined(SPI_DATA_RECEIVED_INDICATOR)
-  uint16_t ui16DX = 0, ui16DY = 0, ui16AX = (LCD_WIDTH + sizeof(pTitle) / 5 * 6) / 2, ui16AY = 0;
+  uint16_t ui16DX = 0, ui16DY = 0, ui16AX = LCD_WIDTH / 2, ui16AY = 0;
   uint16_t ui16DColor = LCD_COLOR_FOREGROUND, ui16AColor = LCD_COLOR_FOREGROUND;
   uint32_t ui32LastSpiActivated = 0;
 #endif
@@ -196,7 +170,7 @@ int main(void)
       FILLRECT(ui16DX, ui16DY, 1, 1, ui16DColor);
 
       // Move to next pixel
-      if (ui16DX < ((LCD_WIDTH - sizeof(pTitle) / 5 * 6) / 2 - 2)) {
+      if (ui16DX < (LCD_WIDTH / 2 - 2)) {
         ++ui16DX;
       } else {
         ui16DX = 0;
@@ -228,7 +202,7 @@ int main(void)
       if (ui16AX < (LCD_WIDTH - 11)) {
         ui16AX += 10;
       } else {
-        ui16AX = (LCD_WIDTH + sizeof(pTitle) / 5 * 6) / 2;
+        ui16AX = LCD_WIDTH / 2;
 
         // Wrap to next line
         if (ui16AY < 6) {
