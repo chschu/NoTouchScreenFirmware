@@ -1,11 +1,11 @@
 #pragma once
 
 // Screen colors
-#define LCD_COLOR_FOREGROUND WHITE
+#define LCD_COLOR_FOREGROUND YELLOW
 #define LCD_COLOR_BACKGROUND BLACK
 
 // Enable fullscreen mode
-#define LCD_FULLSCREEN
+//#define LCD_FULLSCREEN
 
 // Mirror screen horizontally
 //#define LCD_MIRROR_HORIZONTALLY
